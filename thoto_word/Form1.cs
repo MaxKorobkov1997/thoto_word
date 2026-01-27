@@ -1,21 +1,31 @@
-using Emgu;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.OCR;
 using Emgu.CV.Structure;
-using Emgu.CV.Util;
-using Emgu.Util;
-using Microsoft.VisualBasic.ApplicationServices;
-using Microsoft.Win32;
-using System;
-using System.IO;
-using System.Reflection.Metadata;
 using System.Drawing.Drawing2D;
+using System.Runtime.InteropServices;
 
 namespace thoto_word
 {
     public partial class Form1 : Form
     {
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool ShowWindow(IntPtr hWnd, int showCmds);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+
+        public const int MOD_ALT = 0x1;
+        public const int MOD_CONTROL = 0x2;
+        public const int MOD_SHIFT = 0x4;
+        public const int MOD_WIN = 0x8;
+        public const int WM_HOTKEY = 0x312;
+
         int xDown = 0;
         int yDown = 0;
         int xUp = 0;
@@ -25,8 +35,20 @@ namespace thoto_word
         public Form1()
         {
             InitializeComponent();
+            bool res = RegisterHotKey(Handle, 1, MOD_SHIFT, (uint)Keys.Z);
+            if (res == false) MessageBox.Show("as");
         }
 
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == WM_HOTKEY)
+            {
+                scrin.scrin1();
+                m.Result = (IntPtr)0;
+                return;
+            }
+            base.WndProc(ref m);
+        }
         private void Form1_Load(object sender, EventArgs e)
         {
             //Bitmap originalImage = new Bitmap("a.jpg");
@@ -50,11 +72,6 @@ namespace thoto_word
             yDown = e.Y;
         }
 
-        private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
-        {
-
-        }
-
         private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
         {
             //pictureBox1.Image.Clone();
@@ -70,44 +87,14 @@ namespace thoto_word
 
         }
 
-
         private void button1_Click(object sender, EventArgs e)
         {
             new Form2().Show();
-
-            //scrinshot();
         }
-
-
 
         private void button2_Click(object sender, EventArgs e)
         {
             ras();
-        }
-
-        private void scrinshot()
-        {
-            using (Bitmap bounds = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height))
-            {
-                using (Graphics g = Graphics.FromImage(bounds))
-                {
-                    g.CopyFromScreen(0, 0, 0, 0, bounds.Size);
-                }
-                bounds.Save("6.jpg");
-            }
-            Bitmap originalImage = new Bitmap("6.jpg");
-            // Создайте новую bitmap по размеру PictureBox
-            Bitmap highQualityImage = new Bitmap(pictureBox1.Width, pictureBox1.Height);
-
-            using (Graphics g = Graphics.FromImage(highQualityImage))
-            {
-                // Установите высокое качество
-                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                g.DrawImage(originalImage, 0, 0, pictureBox1.Width, pictureBox1.Height);
-            }
-            pictureBox1.Image = highQualityImage;
-            originalImage.Dispose();
-            File.Delete("6.jpg");
         }
 
         private void ras()
@@ -117,7 +104,7 @@ namespace thoto_word
             using (Tesseract ocr = new Tesseract(@"D:\testData", "rus", OcrEngineMode.TesseractLstmCombined))
             {
                 // 2. Загрузка изображения с помощью Emgu CV
-                using (Image<Bgr, Byte> image = new Image<Bgr, Byte>(@"5.png"))
+                using (Image<Bgr, Byte> image = new Image<Bgr, Byte>(@"85.png"))
                 {
                     // Можно выполнить предварительную обработку, например, перевод в серый цвет и бинаризацию
                     Mat grayImage = new Mat();

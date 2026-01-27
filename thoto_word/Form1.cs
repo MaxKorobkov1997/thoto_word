@@ -10,6 +10,7 @@ using Microsoft.Win32;
 using System;
 using System.IO;
 using System.Reflection.Metadata;
+using System.Drawing.Drawing2D;
 
 namespace thoto_word
 {
@@ -59,8 +60,8 @@ namespace thoto_word
             //pictureBox1.Image.Clone();
             xUp = e.X;
             yUp = e.Y;
-            Rectangle rec = new (xDown, yDown, Math.Abs(xUp - xDown), Math.Abs(yUp - yDown));
-            using (Pen pen = new (Color.YellowGreen, 3))
+            Rectangle rec = new(xDown, yDown, Math.Abs(xUp - xDown), Math.Abs(yUp - yDown));
+            using (Pen pen = new(Color.YellowGreen, 3))
             {
 
                 pictureBox1.CreateGraphics().DrawRectangle(pen, rec);
@@ -72,62 +73,27 @@ namespace thoto_word
 
         private void button1_Click(object sender, EventArgs e)
         {
-            scrinshot();
+            new Form2().Show();
+
+            //scrinshot();
         }
 
-        private void obres()
-        {
-            try
-            {
-                Bitmap croppedBitmap = new(rectCropArea.Width, rectCropArea.Height);
 
-                // Use Graphics object associated with the new bitmap, not the PictureBox
-                using (Graphics g = Graphics.FromImage(croppedBitmap))
-                {
-                    // Draw the relevant part of the original image onto the new bitmap
-                    g.DrawImage(pictureBox1.Image,
-                                new Rectangle(0, 0, croppedBitmap.Width, croppedBitmap.Height),
-                                rectCropArea,
-                                GraphicsUnit.Pixel);
-                }
-                // Dispose of the previous image in pictureBox2 if necessary
-                if (pictureBox2.Image != null)
-                {
-                    pictureBox2.Image.Dispose();
-                }
-                // Assign the new, permanent image to the PictureBox property
-                pictureBox2.Image = croppedBitmap;
-
-                // Refresh() теперь не строго необходим, но не повредит, хотя PictureBox обновится сам
-                // pictureBox2.Refresh();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Произошла ошибка при обрезке: {ex.Message}");
-            }
-            finally
-            {
-                // sourceBitmap создается как новая копия из pictureBox1.Image, 
-                // поэтому его можно безопасно удалить
-            }
-        }
 
         private void button2_Click(object sender, EventArgs e)
         {
-            obres();
-            MessageBox.Show("a");
+            ras();
         }
 
         private void scrinshot()
         {
-            Rectangle bounds = Screen.PrimaryScreen.Bounds;
-            using (Bitmap screenBmp = new Bitmap(bounds.Width, bounds.Height))
+            using (Bitmap bounds = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height))
             {
-                using (Graphics g = Graphics.FromImage(screenBmp))
+                using (Graphics g = Graphics.FromImage(bounds))
                 {
-                    g.CopyFromScreen(Point.Empty, Point.Empty, bounds.Size);
+                    g.CopyFromScreen(0, 0, 0, 0, bounds.Size);
                 }
-                screenBmp.Save("6.jpg");
+                bounds.Save("6.jpg");
             }
             Bitmap originalImage = new Bitmap("6.jpg");
             // Создайте новую bitmap по размеру PictureBox
@@ -136,16 +102,16 @@ namespace thoto_word
             using (Graphics g = Graphics.FromImage(highQualityImage))
             {
                 // Установите высокое качество
-                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
                 g.DrawImage(originalImage, 0, 0, pictureBox1.Width, pictureBox1.Height);
             }
             pictureBox1.Image = highQualityImage;
             originalImage.Dispose();
+            File.Delete("6.jpg");
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void ras()
         {
-            //pictureBox2.Image.Save("5.png");
             // 1. Инициализация движка Tesseract
             // Необходимо указать путь к папке tessdata и язык
             using (Tesseract ocr = new Tesseract(@"D:\testData", "rus", OcrEngineMode.TesseractLstmCombined))
@@ -169,8 +135,13 @@ namespace thoto_word
                     string recognizedText = ocr.GetUTF8Text();
                     label1.Text = recognizedText;
                 }
-                File.Delete("6.jpg");
+                File.Delete("5.png");
             }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            scrin.scrin1();
         }
     }
 }
